@@ -1,0 +1,13 @@
+Package: GSDtools
+Title: Tools for analyzing pebble counts used to measure river bed surface texture
+Version: 0.0.1.0000
+Authors@R: 
+    person(given = "Brett",
+           family = "Eaton",
+           role = c("aut", "cre"),
+           email = "brett.eaton@ubc.ca")
+Description: This package uses binomial theory to estimate confidence intervals for the percentiles of gravel bed river bed surfaces. To use this technique, the user must have a cumulative frequency of the bed surface, and they must know how many individual measurements were taken in order to create the frequency distribution. The package also contains tools that can be used to create cumulative frequency distributions using measurements of individual grain sizes, and to compare two cumulative frequency distributions to determine which percentiles are statistically different.
+License: This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3 (GPL-3). This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
