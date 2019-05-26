@@ -230,7 +230,7 @@ PolyCI = function(cfd, n, P = seq(1, 99, 1), equaltail = T, alpha = 0.05, plot =
 
 #' Compare two grain size distribution samples to see if they are different
 #'
-#' \code{CompareGSDs} is a function that takes two cumulative frequency dist-
+#' \code{CompareCFDs} is a function that takes two cumulative frequency dist-
 #' ributions with the same format as the data frames produced by MakeCFD, and
 #' uses an inverse transform approach to numerically determine whether per-
 #' centile estimates from the two samples are statistically different. The
@@ -259,7 +259,7 @@ PolyCI = function(cfd, n, P = seq(1, 99, 1), equaltail = T, alpha = 0.05, plot =
 #' Interval
 #' @export
 
-CompareGSDs = function(GSD1, GSD2, n1, n2, P = seq(5,95, 5), alpha = 0.05){
+CompareCFDs = function(GSD1, GSD2, n1, n2, P = seq(5,95, 5), alpha = 0.05){
 
   nr = 10^3  #number of realizations
   Dp1 = matrix(data = NA, nrow = nr, ncol = length(P))
@@ -297,6 +297,64 @@ CompareGSDs = function(GSD1, GSD2, n1, n2, P = seq(5,95, 5), alpha = 0.05){
   # report sample estimates of the percentile
   D1 = 2^approx(GSD1$probs, log2(GSD1$size), P/100)[[2]]
   D2 = 2^approx(GSD2$probs, log2(GSD2$size), P/100)[[2]]
+
+  # create a data frame presenting the results
+  results = data.frame(P,D1,D2, dffrnt)
+  colnames(results) = c("Percentile", "Sample_1", "Sample_2", "Stat_Diff")
+  return(results)
+}
+
+#' Compare two sets of grain size measurements to see if they are different
+#'
+#' \code{CompareRAWs} is a function that takes two sets of grain size observations
+#' and uses a resampling approach with replacement to estimate whether or not the
+#' grain sizes for a percentile of interest from the two sample sets are statistically
+#' different. The analysis requires the entire set of individual b-axis measurements.
+#'
+#' The function returns a data frame listing the percentile being compared, the
+#' estimate of that percentile for sample 1, the estimate for sample 2, and a
+#' logical variable that indicates whether the percentiles are statistically
+#' different or not.
+#'
+#' @param OBS1 is a vectory containing indivuala b axis measurments (in mm) for
+#' the first sample.
+#' @param OBS2 is a vectory containing indivuala b axis measurments (in mm) for
+#' the second sample.
+#' @param P numeric vector of percentiles to be compared. The default is to
+#' compare the 5th to the 95th percentile, in increments of 5
+#' @param alpha  the desired confidence level for which to calculate a
+#' confidence interval. The default is to set alpha = 0.05, for a 95\% Confidence
+#' Interval
+#' @export
+
+CompareRAWs = function(OBS1, OBS2, P = seq(5,95, 5), alpha = 0.05){
+  n1 = length(OBS1)
+  n2 = length(OBS2)
+
+  nr = 10^3  #number of realizations
+  Dp1 = matrix(data = NA, nrow = nr, ncol = length(P))
+  Dp2 = matrix(data = NA, nrow = nr, ncol = length(P))
+  for (i in 1:nr) {
+    # resample with replacement
+    y1 = sample(OBS1, n1, replace = T)
+    y2 = sample(OBS2, n2, replace = T)
+
+    # extract the percentiles from the resampled data sets
+    Dp1[i,] = as.numeric(quantile(y1, probs = P/100))
+    Dp2[i,] = as.numeric(quantile(y2, probs = P/100))
+  }
+  deltaDp = Dp1 - Dp2
+
+  # hypothesis test - two tailed
+  CL = matrix(data = NA, ncol = 2, nrow = length(P))
+  for(i in seq_along(P)){
+    CL[i,] = quantile(deltaDp[,i], c(alpha/2, 1 - alpha/2))
+  }
+  dffrnt = CL[,1]*CL[,2]>0
+
+  # report sample estimates of the percentile
+  D1 = as.numeric(quantile(OBS1, probs = P/100))
+  D2 = as.numeric(quantile(OBS2, probs = P/100))
 
   # create a data frame presenting the results
   results = data.frame(P,D1,D2, dffrnt)
